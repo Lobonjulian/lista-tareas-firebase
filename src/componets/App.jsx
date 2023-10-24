@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react"
 import TaskList from "./list/TaskList"
+import Settings from "./settings/Settings";
 import { motion, AnimatePresence } from "framer-motion"
-import Setting from "./settings/Setting";
 
 /**
- * Funcion Anonima para crear un Componente Prinipal
+ * Función Anónima para crear un Componente Principal
  * @returns {React.Component} Componente Principal  de nuestra App
  */
 const App = () => {
@@ -12,28 +12,29 @@ const App = () => {
   const [showSettings, setShowSettings] = useState(false);
 
   /**
-   * Documentacion del UseEffect
-   * se crea una variable de estado donde se almacena el valor de la configuracion en el localStorage
+   * Documentación del UseEffect
+   * se crea una variable de estado donde se almacena el valor de la configuración en el localStorage
    */
+
   useEffect(() => {
     setDark(false);
-  },[])
+  }, [])
 
   /**
-   * Funcion para intercambiar el valor del estado de dark <--> light
+   * Función para intercambiar el valor del estado de dark <--> light
    */
   const toggleDark = () =>  setDark(!dark);
     
   return (
     <div className={`App ${dark ? "dark" : ""}`}>
-      <div className={`h-screen p-4 flex flex-col bg-gray-200 dark:bg-slate-800 transition dark:text-gray-100`}>
+      <div className={`h-screen p-4 flex flex-col bg-gray-100 dark:bg-slate-800 transition dark:text-gray-100`}>
         <TaskList 
           showSettings={showSettings}
           setShowSettings={setShowSettings}
         />
         <AnimatePresence
           initial={false}
-          exitBeforeEnter={true}
+          // exitBeforeEnter={true}
           onExitComplete={() => null}
         >
           {showSettings && (
@@ -42,7 +43,7 @@ const App = () => {
               animate={{ y: "0" }}
               exit={{ y: "100vh" }}
             >
-              <Setting toggleDark={toggleDark} />
+              <Settings toggleDark={toggleDark} />
             </motion.div>
           )}
         </AnimatePresence>

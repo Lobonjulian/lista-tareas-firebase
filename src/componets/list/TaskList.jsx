@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion";
+import { addTask, getTasks, toggleCompleted } from "../../firebase/tasksController";
 
 /**
  * componente que gestiona la lista de tareas
@@ -9,19 +10,22 @@ const TaskList = ({ showSettings, setShowSettings }) => {
 const [newTask, setNewTask] = useState("");
 const [taskList, setTaskList] = useState([]);
 
-// useEffect(() =>{
-
-// })
+useEffect(() =>{
+  getTasks()
+    .then((tasks) => setTaskList([...tasks]))
+    .catch((e) => console.error(e))
+},[])
 
 /**
  * Añade una nueva tarea a la lista 
+ * v2: La nueva tarea se añade como un objeto { task: nombre de la tarea, completed: si está completada o no}
  */
 const addNewTask = () => {
   if (newTask === "") return;
   //Vamos a añadir una nueva tarea a la base de datos 
-  const task = {task: newTask, completed: false};
-  addNewTask(task)
-    .then(() =>{
+  const task = { task: newTask, completed: false };
+  addTask(task)
+    .then(() => {
       //Cuando se añade la tarea -> actualiza todo dentro del estado de Tasklist
       return setTaskList([...taskList, task])
     })
@@ -35,6 +39,10 @@ const addNewTask = () => {
  */
 const isTasksEmpty = () => taskList.length === 0;
 
+/**
+ * editar el nombre de la nueva tarea
+ * @param {*} e - Evento de onChange proveniente de React
+ */
 const editNewItem = (e) => setNewTask(e.target.value);
 
 /**
@@ -42,7 +50,7 @@ const editNewItem = (e) => setNewTask(e.target.value);
  * @param {*} index - Indice de la tarea a eliminar
  */
 const removeItem = (index) => {
-  const newTaskList= taskList.filter((t, i) => i !== index);
+  const newTaskList = taskList.filter((t, i) => i !== index);
   setTaskList(newTaskList);
 }
 
@@ -50,33 +58,37 @@ const removeItem = (index) => {
  * cambia el item por completado <-> pendiente
  * @param {*} index 
  */
-// const toggleCompletedItem = (index) => {
-//   let task = taskList.find((t) => t.id === index);
-//   // Actualiza la base de datos de la tarea
-//   toggleCompleted(task)
-//     .then(async () => {
-//       //Cuando se haya añadido -> actualiza todo dentro del estado de Tasklist
-//       const newTaskList = await getTasks();
-//       return setTaskList([...newTaskList]);
-//     })
-//     .catch((e) => console.error(e))
-//}
+const toggleCompletedItem = (index) => {
+  let task = taskList.find((t) => t.id === index);
+  // Actualiza la base de datos de la tarea
+  toggleCompleted(task)
+    .then(async () => {
+      //Cuando se haya añadido -> actualiza todo dentro del estado de Tasklist
+      const newTaskList = await getTasks();
+      return setTaskList([...newTaskList]);
+    })
+    .catch((e) => console.error(e))
+}
 
+ /**
+   * Añade una nueva tarea cuando se presiona la tecla Enter
+   * @param {*} e - Evento onKeyDown que proviene por defecto de React
+   */
 const insertNewItemOnEnterKey = (e) => e.key === "Enter" && addNewTask();
 
   return (
     <>
       <header className="flex justify-between">
         <h1 className="text-3xl font-semibold text-lemon-600 dark:text-lime-200">
-          Task List v1 
+          Task List v2 
         </h1>
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           className="btn"
-          // onClick={() => setShowSettings(!showSettings)}
+          onClick={() => setShowSettings(!showSettings)}
         > 
-          {/* {!showSettings ? "Show Settings" : "Hide Settings"} */}
+          {!showSettings ? "Show Settings" : "Hide Settings"}
         </motion.button>
       </header>
       <div className="my-4">
@@ -88,11 +100,8 @@ const insertNewItemOnEnterKey = (e) => e.key === "Enter" && addNewTask();
           onChange={editNewItem}
           onKeyDown={insertNewItemOnEnterKey}
         />
-        <button
-          className="btn btn-add-task" 
-          onClick={addNewTask}
-        >
-          crear tareas
+        <button className="btn btn-add-task" onClick={addNewTask} >
+          Crear Tareas
         </button>
       </div>
       {isTasksEmpty() ? (
@@ -103,12 +112,16 @@ const insertNewItemOnEnterKey = (e) => e.key === "Enter" && addNewTask();
             <motion.li initial={{ x:" 100vw"}} animate={{ x:"0"}} key={index}>
               <label className="cursor-pointer">
                 <input 
-                  type="checkbox" 
+                  type="checkbox"
+                  // onClick={() => removeItem(index)}
+                  onClick={() => toggleCompletedItem(item.id)}
                   checked={item.completed} 
                   onChange={() => {}}
                 />
                 <span 
-                  className={`ml-2 text-gray-700 dark:text-gray-200 text-sm italic ${item.completed && "line-through"  }`}
+                  className={`ml-2 text-gray-700 dark:text-gray-200 text-sm italic 
+                    ${item.completed && "line-through"  
+                  }`}
                 >
                   {item.task}
                 </span>
